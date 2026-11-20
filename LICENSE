@@ -19,7 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
-Bundled lexicon data credits: Unihan (Unicode Consortium), HSK wordlists
-(complete-hsk-vocabulary, MIT), TOPIK / JLPT study wordlists. Romanization,
-tokenization and all application code are original work for HoSub Studio.
