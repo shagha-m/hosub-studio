@@ -1,0 +1,3 @@
+# HoSub Custom Dictionary — editable inside HoSub Studio or any spreadsheet editor
+# Columns: surface<TAB>lang<TAB>romanization<TAB>meaning<TAB>level<TAB>pos
+# Supported lang codes: zh, ko, ja, fa, ar, ro, de, fr, es, it, tr, ru, en (or any ISO 639-1 code)

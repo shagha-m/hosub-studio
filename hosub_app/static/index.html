@@ -1,0 +1,875 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HoSub Studio — Offline Multilingual Subtitle &amp; Flashcard Studio</title>
+  <link rel="stylesheet" href="styles.css?v=2.1.4">
+</head>
+<body>
+  <!-- TOP STUDIO BAR -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="brand" title="HoSub Studio 2.0 — 100% Offline Multilingual Workflow">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2.5" y="4" width="19" height="16" rx="3"></rect>
+            <path d="M6.5 12h4M13.5 12h4M6.5 15.5h7M16 15.5h1.5"></path>
+            <path d="M7 8.5h2.5M12 8.5h5"></path>
+          </svg>
+        </span>
+        <span class="brand-name">HoSub</span>
+      </div>
+      <input id="projectTitleInput" class="project-title-input" type="text" value="Loading…" aria-label="Project title" title="Click to rename lesson/project">
+      <span class="offline-pill" title="Runs 100% locally — zero internet or external APIs required">Offline</span>
+    </div>
+
+    <nav class="main-tabs" role="tablist" aria-label="Workspace views">
+      <button class="main-tab active" data-tab="editor" role="tab" aria-selected="true">
+        <span>1. Subtitles</span>
+        <span class="tab-count" id="cueCountBadge">0</span>
+      </button>
+      <button class="main-tab" data-tab="ai" role="tab" aria-selected="false">
+        <span>2. AI Round-Trip</span>
+      </button>
+      <button class="main-tab" data-tab="vocab" role="tab" aria-selected="false">
+        <span>3. Vocab &amp; Audio ZIP</span>
+        <span class="tab-count" id="vocabCountBadge">0</span>
+      </button>
+      <button class="main-tab" data-tab="dict" role="tab" aria-selected="false">
+        <span>4. Dictionary</span>
+      </button>
+    </nav>
+
+    <div class="topbar-right">
+      <button class="btn btn-ghost" id="btnOpenFile" title="Open Video, Audio, SRT/VTT, or .hosub.json project">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg>
+        <span>Open</span>
+      </button>
+      <button class="btn btn-subtle" id="btnOpenTranscribe" title="Transcribe loaded video/audio offline with Whisper.cpp">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3M8 22h8"/></svg>
+        <span>Transcribe</span>
+      </button>
+      <button class="btn btn-primary" id="btnOpenExport" title="Export SRT, ASS, Excel Flashcards, Target Audio ZIP, Full Audio, or Video">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <span>Export</span>
+      </button>
+      <button class="btn btn-icon" id="btnOpenEngine" title="Offline AI Engine Settings (FFmpeg &amp; Whisper.cpp)">
+        <span class="status-dot" id="engineStatusDot"></span>
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.08a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.08a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+      <button class="btn btn-icon" id="btnToggleTheme" title="Switch Dark / Light theme" aria-label="Switch theme">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- VIEW 1: SUBTITLE & PREMIERE TIMELINE WORKSTATION -->
+  <main id="view-editor" class="workspace active">
+    <div class="editor-upper">
+      <!-- LEFT: MEDIA STAGE + LIVE OVERLAY + TRANSPORT -->
+      <section class="stage-pane">
+        <div class="stage-frame" id="stageDropZone">
+          <video id="videoEl" class="media-video" playsinline preload="metadata"></video>
+          <audio id="audioEl" preload="metadata"></audio>
+
+          <div id="audioSlate" class="audio-slate">
+            <div class="audio-slate-badge">AUDIO LESSON</div>
+            <div class="audio-slate-title" id="audioSlateName">demo_multilingual_lesson.wav</div>
+            <div class="audio-slate-hint">Drop any video (MP4/MKV/MOV), audio (MP3/WAV/M4A), or SRT file here</div>
+          </div>
+
+          <!-- Live Styled Subtitle Overlay -->
+          <div id="subtitleOverlayWrap" class="sub-overlay-wrap">
+            <div id="subtitleOverlayBox" class="sub-overlay-box"></div>
+          </div>
+        </div>
+
+        <!-- Transport & Quick Style Bar -->
+        <div class="transport-bar">
+          <div class="transport-left">
+            <button class="btn btn-icon" id="btnStepBack" title="Back 2 seconds (J)">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/></svg>
+            </button>
+            <button class="btn btn-play" id="btnPlayPause" title="Play / Pause (Space)">
+              <svg id="iconPlay" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+              <svg id="iconPause" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+            </button>
+            <button class="btn btn-icon" id="btnStepFwd" title="Forward 2 seconds (L)">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
+            </button>
+            <span class="timecode-readout" id="timecodeReadout">00:00.0 / 00:00.0</span>
+            <select id="playbackRateSelect" class="select-compact" title="Playback speed">
+              <option value="0.75">0.75×</option>
+              <option value="1" selected>1.0×</option>
+              <option value="1.25">1.25×</option>
+              <option value="1.5">1.5×</option>
+            </select>
+          </div>
+
+          <div class="transport-right">
+            <button class="chip-toggle active" id="btnToggleCC" title="Show/hide subtitle overlay on player">CC</button>
+            <select id="romaModeSelect" class="select-compact" title="Instant Pinyin / Revised Romanization / Romaji display">
+              <option value="inline">Reading: Inline</option>
+              <option value="stacked">Reading: Stacked</option>
+              <option value="none">Reading: Off</option>
+            </select>
+            <button class="chip-toggle active" id="btnToggleTrans" title="Show/hide translation line">Trans</button>
+            <button class="btn btn-ghost btn-xs" id="btnToggleStyle" title="Customize subtitle font, script colors &amp; box transparency">Style</button>
+            <button class="btn btn-ghost btn-xs" id="btnQuickAudio" title="Save audio-only file from current media">Save Audio</button>
+          </div>
+        </div>
+
+        <!-- Collapsible Style Popover -->
+        <div id="styleDrawer" class="style-drawer hidden">
+          <div class="style-grid">
+            <label class="field-inline">
+              <span>Size</span>
+              <input id="styleFontSize" type="range" min="14" max="38" value="22">
+              <em id="styleFontSizeVal">22px</em>
+            </label>
+            <label class="field-inline">
+              <span>Box Opacity</span>
+              <input id="styleBoxOpacity" type="range" min="0" max="100" value="76">
+              <em id="styleBoxOpacityVal">76%</em>
+            </label>
+            <label class="field-inline">
+              <span>Text</span>
+              <input id="stylePrimaryColor" type="color" value="#f8fafc">
+            </label>
+            <label class="field-inline">
+              <span>Target Lang</span>
+              <input id="styleTargetColor" type="color" value="#f08ba6">
+            </label>
+            <label class="field-inline">
+              <span>Pinyin/Romaji</span>
+              <input id="styleRomaColor" type="color" value="#2dd4bf">
+            </label>
+            <label class="field-inline">
+              <span>Box</span>
+              <input id="styleBoxColor" type="color" value="#090d16">
+            </label>
+            <label class="check-inline">
+              <input id="styleShowBox" type="checkbox" checked>
+              <span>Background box</span>
+            </label>
+            <label class="check-inline">
+              <input id="styleHighlightTarget" type="checkbox" checked>
+              <span>Color target script</span>
+            </label>
+            <label class="check-inline">
+              <input id="styleEnforceBidi" type="checkbox" checked>
+              <span>RTL BiDi punctuation lock</span>
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT: LANGUAGE BAR + SUBTITLE LIST + ACTIVE CUE INSPECTOR -->
+      <section class="cues-pane">
+        <div class="lang-strip">
+          <label class="lang-field">
+            <span>Spoken</span>
+            <select id="baseLangSelect" class="select-compact">
+              <option value="en">English</option>
+              <option value="fa">Persian</option>
+              <option value="zh">Chinese</option>
+              <option value="ko">Korean</option>
+              <option value="ja">Japanese</option>
+              <option value="de">German</option>
+              <option value="fr">French</option>
+              <option value="es">Spanish</option>
+              <option value="ro">Romanian</option>
+              <option value="tr">Turkish</option>
+            </select>
+          </label>
+          <div class="lang-targets">
+            <span class="lang-label">Taught</span>
+            <button class="lang-chip active" data-lang="zh" title="Mandarin Chinese (HSK 1–9 + Unihan Pinyin)">ZH 中文</button>
+            <button class="lang-chip active" data-lang="ko" title="Korean (Full Hangul Revised Romanization + TOPIK)">KO 한국어</button>
+            <button class="lang-chip" data-lang="ja" title="Japanese (Hepburn Romaji + JLPT)">JA 日本語</button>
+            <select id="extraTargetLangSelect" class="select-compact" title="Add another taught language (uses Custom Dictionary &amp; diacritics)">
+              <option value="">+ Other…</option>
+              <option value="en">EN English</option>
+              <option value="de">DE German</option>
+              <option value="fr">FR French</option>
+              <option value="es">ES Spanish</option>
+              <option value="ro">RO Romanian</option>
+              <option value="it">IT Italian</option>
+              <option value="tr">TR Turkish</option>
+              <option value="fa">FA Persian</option>
+            </select>
+            <span id="extraTargetBadges" class="extra-target-badges"></span>
+          </div>
+        </div>
+
+        <!-- Scrollable Subtitle Table -->
+        <div class="cue-table-wrap" id="cueTableWrap">
+          <table class="cue-table">
+            <thead>
+              <tr>
+                <th class="col-num">#</th>
+                <th class="col-time">Timing</th>
+                <th class="col-text">Subtitle &amp; Translation</th>
+                <th class="col-meta">Flags</th>
+              </tr>
+            </thead>
+            <tbody id="cueTableBody"></tbody>
+          </table>
+        </div>
+
+        <!-- Focused Single-Cue Inspector -->
+        <div class="cue-inspector">
+          <div class="inspector-top">
+            <div class="inspector-times">
+              <span class="inspector-badge" id="inspectorRowLabel">#1</span>
+              <label class="time-input-wrap">
+                <span>In</span>
+                <input id="cueStartInput" type="text" value="00:00:00,000" spellcheck="false">
+              </label>
+              <label class="time-input-wrap">
+                <span>Out</span>
+                <input id="cueEndInput" type="text" value="00:00:02,000" spellcheck="false">
+              </label>
+              <span class="cps-indicator" id="inspectorCps">0.0 CPS</span>
+            </div>
+            <div class="inspector-actions">
+              <button class="btn btn-ghost btn-xs" id="btnAddCue" title="Insert new subtitle after selected">+ Add</button>
+              <button class="btn btn-ghost btn-xs" id="btnSplitCue" title="Split selected cue at playhead (S)">Split</button>
+              <button class="btn btn-ghost btn-xs" id="btnMergeCues" title="Merge selected cues (M)">Merge</button>
+              <button class="btn btn-ghost btn-xs" id="btnLockCue" title="Lock/unlock selected cue(s) as Anti-Domino barrier">Lock</button>
+              <button class="btn btn-ghost btn-xs btn-danger-hover" id="btnDeleteCue" title="Delete selected cue(s) (Del)">Delete</button>
+            </div>
+          </div>
+          <div class="inspector-fields">
+            <div class="inspector-col">
+              <label for="cueTextInput">Original Line <small id="liveRomaPreview" class="roma-preview"></small></label>
+              <textarea id="cueTextInput" rows="2" dir="auto" placeholder="Spoken subtitle line (e.g. In Mandarin, say 早上好)…"></textarea>
+            </div>
+            <div class="inspector-col">
+              <label for="cueTransInput">Translation <small class="muted">RTL BiDi-safe</small></label>
+              <textarea id="cueTransInput" rows="2" dir="auto" placeholder="Optional translation (Persian, English, etc.)…"></textarea>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- BOTTOM DOCK: REAL PREMIERE-PRO WAVEFORM TIMELINE -->
+    <section class="timeline-dock">
+      <div class="timeline-toolbar">
+        <div class="tl-group" role="group" aria-label="Timeline tools">
+          <button class="tl-tool active" id="toolSelect" data-tool="select" title="Selection &amp; Marquee Tool (V) — Click, Shift+Click, drag box to multi-select, drag body to move, drag edges to trim">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.1"><path d="M4 3l7 17 2.5-6.5L20 11 4 3z"/></svg>
+            <span>Select <kbd>V</kbd></span>
+          </button>
+          <button class="tl-tool" id="toolForward" data-tool="forward" title="Premiere Track Select Forward Tool (A) — Click any cue to select it and all following cues, then drag them together!">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.1"><path d="M4 12h13M12 6l6 6-6 6"/><path d="M20 5v14"/></svg>
+            <span>Track Forward <kbd>A</kbd></span>
+          </button>
+          <label class="check-inline tl-stop-lock" title="When using Track Forward, stop selection at the next locked cue">
+            <input id="chkStopAtLock" type="checkbox" checked>
+            <span>Stop at 🔒</span>
+          </label>
+        </div>
+
+        <div class="tl-divider"></div>
+
+        <div class="tl-group">
+          <button class="btn btn-ghost btn-xs" id="btnSelectToEnd" title="Select from current cue to the end of the timeline">Select → End</button>
+          <button class="btn btn-ghost btn-xs" id="btnGroupCues" title="Link selected cues into a group so they always move together (Ctrl+G)">Group <kbd>Ctrl+G</kbd></button>
+          <button class="btn btn-ghost btn-xs" id="btnUngroupCues" title="Ungroup selected cues (Ctrl+Shift+G)">Ungroup</button>
+          <span class="sel-pill" id="selectionSummary">1 selected</span>
+        </div>
+
+        <div class="tl-divider"></div>
+
+        <div class="tl-group">
+          <button class="btn btn-ghost btn-xs" id="btnNudgeBack" title="Shift all selected/grouped cues earlier">−100ms</button>
+          <input id="nudgeMsInput" class="input-ms" type="number" value="250" step="50" min="10" max="60000" title="Custom shift amount in milliseconds">
+          <button class="btn btn-ghost btn-xs" id="btnShiftMinus" title="Shift selected cues backward by custom ms">−Shift</button>
+          <button class="btn btn-ghost btn-xs" id="btnShiftPlus" title="Shift selected cues forward by custom ms">+Shift</button>
+          <button class="btn btn-ghost btn-xs" id="btnNudgeFwd" title="Shift all selected/grouped cues later">+100ms</button>
+          <button class="btn btn-ghost btn-xs" id="btnSnapVoice" title="Snap unlocked cues to detected speech islands (Anti-Domino)">Snap Voice</button>
+        </div>
+
+        <div class="tl-spacer"></div>
+
+        <div class="tl-group">
+          <button class="btn btn-icon btn-xs" id="btnUndo" title="Undo (Ctrl+Z)" disabled>
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
+          </button>
+          <button class="btn btn-icon btn-xs" id="btnRedo" title="Redo (Ctrl+Y)" disabled>
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7"/></svg>
+          </button>
+          <span class="zoom-label">Zoom</span>
+          <input id="timelineZoom" type="range" min="25" max="420" value="95" title="Timeline zoom (or Mouse Wheel over timeline)">
+          <button class="btn btn-ghost btn-xs" id="btnZoomFit" title="Fit entire timeline in window">Fit</button>
+        </div>
+      </div>
+
+      <div class="timeline-canvas-wrap" id="timelineWrap">
+        <canvas id="timelineCanvas"></canvas>
+      </div>
+    </section>
+  </main>
+
+  <!-- VIEW 2: ZERO-API-KEY AI ROUND-TRIP -->
+  <main id="view-ai" class="workspace page-workspace">
+    <div class="page-header">
+      <div>
+        <h1>AI Proofread &amp; Selective Translation Round-Trip</h1>
+        <p>No paid API keys or cloud lock-in. Copy timecode-locked lines into any AI chat (ChatGPT, Claude, Gemini, DeepSeek, or local LLM), paste the answer back, and HoSub aligns every cue with full QA checks.</p>
+      </div>
+    </div>
+
+    <div class="two-col-cards">
+      <section class="card">
+        <div class="card-head">
+          <h2>Step 1 — Generate &amp; Copy Prompt</h2>
+          <span class="badge-muted" id="aiBatchInfo">Batch 1 / 1</span>
+        </div>
+        <div class="form-row-grid">
+          <label class="field">
+            <span>Task</span>
+            <select id="aiTaskSelect">
+              <option value="proofread_and_translate">Proofread ASR Errors + Translate</option>
+              <option value="translate_only">Translate Only (Keep Original Untouched)</option>
+              <option value="proofread_only">Proofread Original Only</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Translate Into</span>
+            <select id="aiTargetLangSelect">
+              <option value="fa">Persian (فارسی)</option>
+              <option value="en">English</option>
+              <option value="zh">Mandarin Chinese</option>
+              <option value="ko">Korean</option>
+              <option value="ja">Japanese</option>
+              <option value="de">German</option>
+              <option value="fr">French</option>
+              <option value="es">Spanish</option>
+              <option value="ro">Romanian</option>
+              <option value="tr">Turkish</option>
+              <option value="ar">Arabic</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Lines per Batch</span>
+            <select id="aiBatchSizeSelect">
+              <option value="50">50 lines (safest)</option>
+              <option value="80" selected>80 lines (recommended)</option>
+              <option value="150">150 lines</option>
+            </select>
+          </label>
+        </div>
+        <label class="check-inline mt-8">
+          <input id="aiPreserveScript" type="checkbox" checked>
+          <span>Keep taught-language words (e.g. 中文 / 한국어) in their original script inside translations</span>
+        </label>
+        <label class="field mt-10">
+          <span>Course Glossary (optional — enforces consistent terminology)</span>
+          <textarea id="aiGlossaryInput" rows="2" dir="auto" placeholder="e.g. measure word = طبقه‌بند&#10;tone sandhi = تغییر تُن"></textarea>
+        </label>
+        <div class="btn-row mt-10">
+          <button class="btn btn-ghost btn-sm" id="btnAiPrevBatch">← Prev Batch</button>
+          <button class="btn btn-primary" id="btnAiCopyPrompt">Copy Prompt to Clipboard</button>
+          <button class="btn btn-ghost btn-sm" id="btnAiNextBatch">Next Batch →</button>
+        </div>
+        <textarea id="aiPromptPreview" class="code-box mt-10" rows="11" readonly></textarea>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2>Step 2 — Paste AI Output &amp; Apply</h2>
+          <span class="badge-muted">Ctrl+Z Undo Safe</span>
+        </div>
+        <p class="card-sub">Paste the numbered lines returned by your AI below. Markdown fences or extra comments are stripped automatically; timestamps and locked BiDi punctuation remain intact.</p>
+        <textarea id="aiResponseInput" class="code-box" rows="14" dir="auto" placeholder="[0001] Welcome back! In Mandarin, we greet in the morning with 早上好. || خوش آمدید! در چینی صبح‌ها با 早上好 سلام می‌کنیم.&#10;[0002] …"></textarea>
+        <div class="btn-row mt-10">
+          <button class="btn btn-primary" id="btnAiApply">Apply to Subtitles &amp; Run QA</button>
+          <button class="btn btn-ghost" id="btnAiClear">Clear</button>
+        </div>
+        <div id="aiQaReport" class="qa-box hidden"></div>
+      </section>
+    </div>
+  </main>
+
+  <!-- VIEW 3: VOCABULARY FLASHCARDS (EXCEL) + CODE-SWITCH TARGET AUDIO CUTTER (.ZIP) -->
+  <main id="view-vocab" class="workspace page-workspace">
+    <div class="page-header vocab-header">
+      <div>
+        <h1>Vocabulary Flashcards &amp; Target-Language Audio Cutter</h1>
+        <p>Deduplicates taught words across the lesson, pairs each with Pinyin/Romanization and real video context, slices target-language audio into a named <code>.zip</code>, and exports ready-to-import Excel <code>.xlsx</code> flashcards.</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-subtle" id="btnOpenVocabAi">AI Translate Wordlist</button>
+        <button class="btn btn-subtle" id="btnToggleAudioPanel">Cut Target Audio (.ZIP)</button>
+        <button class="btn btn-primary" id="btnExportXlsx">Export Excel (.xlsx)</button>
+        <button class="btn btn-ghost" id="btnExportVocabCsv">.CSV</button>
+        <button class="btn btn-ghost" id="btnExportVocabJson">.JSON</button>
+      </div>
+    </div>
+
+    <!-- Collapsible Code-Switching Target Audio Cutter Studio -->
+    <section id="audioCutterPanel" class="card cutter-card hidden">
+      <div class="card-head">
+        <div>
+          <h2>Code-Switching Target-Language Audio Cutter → <code>.ZIP</code></h2>
+          <p class="card-sub">Automatically isolates each moment the audio switches into your taught language(s), names each clip after the actual phrase/word, and links every clip filename straight into your Excel Flashcards.</p>
+        </div>
+        <button class="btn btn-primary" id="btnDownloadAudioZip">Cut &amp; Download Audio .ZIP</button>
+      </div>
+
+      <div class="cutter-controls">
+        <label class="field">
+          <span>Cut Boundary</span>
+          <select id="cutModeSelect">
+            <option value="switch_span">Exact Taught Word / Phrase</option>
+            <option value="full_cue">Full Subtitle Sentence</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Filename Style</span>
+          <select id="cutNamingSelect">
+            <option value="word_only">Phrase only (早上好.mp3)</option>
+            <option value="index_word">Number + Phrase (001_早上好.mp3)</option>
+            <option value="index_word_roma">Number + Phrase + Reading (001_早上好_zaoshang-hao.mp3)</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Audio Format</span>
+          <select id="cutFormatSelect">
+            <option value="mp3">MP3 (Compact)</option>
+            <option value="wav">WAV (Lossless — works even without FFmpeg)</option>
+            <option value="m4a">M4A (AAC)</option>
+            <option value="ogg">OGG</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Pre-Pad (ms)</span>
+          <input id="cutPrePad" type="number" value="120" min="0" max="1000" step="20">
+        </label>
+        <label class="field">
+          <span>Post-Pad (ms)</span>
+          <input id="cutPostPad" type="number" value="180" min="0" max="1000" step="20">
+        </label>
+        <label class="check-inline">
+          <input id="cutDedup" type="checkbox" checked>
+          <span>Skip duplicate phrases</span>
+        </label>
+        <label class="check-inline">
+          <input id="cutLinkVocab" type="checkbox" checked>
+          <span>Link filenames to Excel cards</span>
+        </label>
+      </div>
+
+      <div class="clip-preview-list" id="clipPreviewList"></div>
+    </section>
+
+    <!-- Vocabulary Filter Bar -->
+    <div class="vocab-toolbar">
+      <select id="vocabScopeSelect" class="select-compact">
+        <option value="target">Taught Languages Only</option>
+        <option value="all">All Words (incl. Spoken Language)</option>
+      </select>
+      <label class="check-inline">
+        <input id="vocabHideStopwords" type="checkbox" checked>
+        <span>Filter common particles &amp; stopwords</span>
+      </label>
+      <label class="field-inline">
+        <span>Min Freq</span>
+        <input id="vocabMinFreq" class="input-xs" type="number" value="1" min="1" max="50">
+      </label>
+      <input id="vocabSearchInput" class="search-input" type="search" placeholder="Filter word, Pinyin/Romanization, or meaning…">
+      <div class="tl-spacer"></div>
+      <button class="btn btn-ghost btn-xs" id="btnVocabSelectAll">Select All</button>
+      <button class="btn btn-ghost btn-xs" id="btnVocabSelectNone">Select None</button>
+      <span class="sel-pill" id="vocabSummaryPill">0 selected</span>
+    </div>
+
+    <!-- Editable Flashcard Table -->
+    <div class="card table-card">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th style="width:36px"></th>
+            <th>Word</th>
+            <th>Romanization</th>
+            <th>Meaning / Translation</th>
+            <th style="width:92px">Lang / Level</th>
+            <th style="width:88px">POS</th>
+            <th style="width:54px">Freq</th>
+            <th style="width:78px">Time</th>
+            <th>Lesson Context</th>
+            <th style="width:140px">Audio / Dict</th>
+          </tr>
+        </thead>
+        <tbody id="vocabTableBody"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- VIEW 4: EXTENSIBLE DICTIONARY MANAGER -->
+  <main id="view-dict" class="workspace page-workspace">
+    <div class="page-header">
+      <div>
+        <h1>Offline Lexicon &amp; Custom Dictionary</h1>
+        <p id="dictStatsLine">Built-in Mandarin (HSK 1–9 + Unihan), Korean (Full Hangul + TOPIK), Japanese (Hepburn + JLPT), plus your persistent custom dictionary for any language.</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-subtle" id="btnImportDict">Bulk Import (.xlsx / .csv / .tsv)</button>
+        <a class="btn btn-ghost" href="api/dict/export" download="hosub_custom_dictionary.tsv">Export My Words (.tsv)</a>
+      </div>
+    </div>
+
+    <div class="dict-layout">
+      <section class="card">
+        <div class="card-head">
+          <h2>Add or Override Word</h2>
+        </div>
+        <p class="card-sub">Words saved here persist permanently in <code>data/custom_dict.tsv</code> and are immediately recognized in subtitles, flashcards, and the audio cutter.</p>
+        <form id="dictForm" class="stack-form">
+          <label class="field">
+            <span>Word or Phrase *</span>
+            <input id="dictSurface" type="text" dir="auto" required placeholder="e.g. 电脑, 괜찮아요, mulțumesc">
+          </label>
+          <div class="form-row-grid two">
+            <label class="field">
+              <span>Language</span>
+              <select id="dictLang">
+                <option value="zh">Chinese (zh)</option>
+                <option value="ko">Korean (ko)</option>
+                <option value="ja">Japanese (ja)</option>
+                <option value="en">English (en)</option>
+                <option value="fa">Persian (fa)</option>
+                <option value="de">German (de)</option>
+                <option value="fr">French (fr)</option>
+                <option value="es">Spanish (es)</option>
+                <option value="ro">Romanian (ro)</option>
+                <option value="it">Italian (it)</option>
+                <option value="tr">Turkish (tr)</option>
+                <option value="ar">Arabic (ar)</option>
+                <option value="ru">Russian (ru)</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Level / Deck Tag</span>
+              <input id="dictLevel" type="text" placeholder="e.g. HSK2, TOPIK1, Unit 3" value="Custom">
+            </label>
+          </div>
+          <label class="field">
+            <span>Pinyin / Romanization / Pronunciation <small class="muted">(leave blank to auto-generate for ZH/KO/JA)</small></span>
+            <input id="dictRoma" type="text" placeholder="e.g. diànnǎo, gwaenchanayo">
+          </label>
+          <label class="field">
+            <span>Meaning / Translation</span>
+            <input id="dictMeaning" type="text" dir="auto" placeholder="e.g. computer / کامپیوتر">
+          </label>
+          <label class="field">
+            <span>Part of Speech (optional)</span>
+            <input id="dictPos" type="text" placeholder="noun, verb, phrase, grammar…">
+          </label>
+          <div class="btn-row mt-8">
+            <button type="submit" class="btn btn-primary">Save to Dictionary</button>
+            <button type="reset" class="btn btn-ghost">Reset</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="card">
+        <div class="dict-search-bar">
+          <input id="dictSearchInput" class="search-input flex-1" type="search" placeholder="Search Hanzi, Hangul, Kana, Pinyin, Romanization, or meaning…">
+          <select id="dictFilterLang" class="select-compact">
+            <option value="all">All Languages</option>
+            <option value="zh">Chinese (ZH)</option>
+            <option value="ko">Korean (KO)</option>
+            <option value="ja">Japanese (JA)</option>
+            <option value="de">German (DE)</option>
+            <option value="fr">French (FR)</option>
+            <option value="es">Spanish (ES)</option>
+            <option value="ro">Romanian (RO)</option>
+            <option value="fa">Persian (FA)</option>
+            <option value="en">English (EN)</option>
+          </select>
+          <select id="dictFilterSource" class="select-compact">
+            <option value="all">Custom + Built-in</option>
+            <option value="custom">My Custom Only</option>
+            <option value="builtin">Built-in Only</option>
+          </select>
+        </div>
+        <div class="dict-table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Word</th>
+                <th>Reading</th>
+                <th>Meaning</th>
+                <th>Lang</th>
+                <th>Level</th>
+                <th style="width:92px">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="dictTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- HIDDEN FILE INPUTS -->
+  <input id="hiddenFileInput" type="file" accept="video/*,audio/*,.srt,.vtt,.json,.mkv,.mp4,.mov,.webm,.mp3,.wav,.m4a,.ogg,.flac" hidden>
+  <input id="hiddenDictFileInput" type="file" accept=".xlsx,.csv,.tsv,.txt" hidden>
+  <audio id="clipPreviewAudio" hidden></audio>
+
+  <!-- MODAL: OPEN FILE -->
+  <div class="modal-backdrop hidden" id="modalOpen">
+    <div class="modal">
+      <div class="modal-head">
+        <h2>Open Media, Subtitles, or Project</h2>
+        <button class="btn btn-icon modal-close" data-close="modalOpen">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="open-grid">
+          <button class="open-tile" id="btnPickUpload">
+            <strong>Choose File from Computer</strong>
+            <span>Video (MP4, MKV, MOV, WEBM), Audio (MP3, WAV, M4A, FLAC), Subtitles (.SRT, .VTT), or Project (.hosub.json)</span>
+          </button>
+          <div class="open-local-box">
+            <label class="field">
+              <span>Instant Zero-Copy Local Path <small class="muted">(ideal for multi-GB videos on your PC)</small></span>
+              <div class="btn-row">
+                <input id="localPathInput" class="flex-1" type="text" placeholder="e.g. E:\Lessons\HSK1_Lesson03.mp4">
+                <button class="btn btn-subtle" id="btnOpenLocalPath">Load</button>
+              </div>
+            </label>
+            <label class="check-inline mt-8">
+              <input id="chkClearSubsOnMedia" type="checkbox">
+              <span>Clear current subtitles when loading new media</span>
+            </label>
+          </div>
+        </div>
+        <div class="btn-row mt-12">
+          <button class="btn btn-ghost btn-sm" id="btnReloadDemo">Load Sample Mandarin + Korean Lesson</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: OFFLINE WHISPER.CPP TRANSCRIPTION -->
+  <div class="modal-backdrop hidden" id="modalTranscribe">
+    <div class="modal">
+      <div class="modal-head">
+        <h2>Offline Multilingual Transcription (Whisper.cpp)</h2>
+        <button class="btn btn-icon modal-close" data-close="modalTranscribe">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="asrEngineBanner" class="engine-banner"></div>
+        <div class="form-row-grid two mt-10">
+          <label class="field">
+            <span>Detection Mode</span>
+            <select id="asrLangMode">
+              <option value="auto" selected>Auto Code-Switching (Multi-Language in One Sentence)</option>
+              <option value="en">Lock Primary: English</option>
+              <option value="zh">Lock Primary: Mandarin Chinese</option>
+              <option value="ko">Lock Primary: Korean</option>
+              <option value="ja">Lock Primary: Japanese</option>
+              <option value="fa">Lock Primary: Persian</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Time-Cage Alignment</span>
+            <select id="asrSnapSelect">
+              <option value="1" selected>Snap to VAD Speech Islands (Anti-Domino)</option>
+              <option value="0">Keep Raw Whisper Timestamps</option>
+            </select>
+          </label>
+        </div>
+        <label class="field mt-10">
+          <span>Lesson Vocabulary Hint <small class="muted">(optional — boosts accuracy on new words &amp; names)</small></span>
+          <input id="asrVocabHint" type="text" dir="auto" placeholder="e.g. 早上好, 图书馆, 안녕하세요, 감사합니다">
+        </label>
+
+        <div id="asrProgressArea" class="progress-area hidden mt-12">
+          <div class="progress-track"><div id="asrProgressFill" class="progress-fill"></div></div>
+          <div class="progress-caption" id="asrProgressText">Preparing…</div>
+          <pre id="asrLogBox" class="asr-log" dir="ltr"></pre>
+        </div>
+
+        <div class="btn-row mt-14">
+          <button class="btn btn-primary" id="btnStartAsr">Start Offline Transcription</button>
+          <button class="btn btn-ghost hidden" id="btnCancelAsr">Cancel</button>
+          <div class="tl-spacer"></div>
+          <button class="btn btn-ghost btn-sm" id="btnJumpEngineFromAsr">Configure Engine Paths…</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: EXPORT CENTER -->
+  <div class="modal-backdrop hidden" id="modalExport">
+    <div class="modal modal-wide">
+      <div class="modal-head">
+        <h2>Export Center</h2>
+        <button class="btn btn-icon modal-close" data-close="modalExport">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="export-options-bar">
+          <label class="field">
+            <span>Subtitle Content</span>
+            <select id="expContentMode">
+              <option value="bilingual" selected>Bilingual (Original + Translation)</option>
+              <option value="original">Original Line Only</option>
+              <option value="translation">Translation Only</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Pinyin / Romanization</span>
+            <select id="expRomaMode">
+              <option value="inline" selected>Inline — 你好 (nǐ hǎo)</option>
+              <option value="stacked">Stacked Above Line</option>
+              <option value="none">Hidden (Clean Script)</option>
+            </select>
+          </label>
+          <label class="check-inline">
+            <input id="expBidi" type="checkbox" checked>
+            <span>RTL BiDi Lock (Premiere / Players)</span>
+          </label>
+        </div>
+
+        <div class="export-sections">
+          <div class="export-card">
+            <h3>Subtitles &amp; Project</h3>
+            <p>UTF-8 BOM compatible with Premiere Pro, DaVinci Resolve, VLC &amp; MPV.</p>
+            <div class="export-btns">
+              <button class="btn btn-primary btn-sm" data-sub-export="srt">Download .SRT</button>
+              <button class="btn btn-subtle btn-sm" data-sub-export="ass">Styled .ASS</button>
+              <button class="btn btn-ghost btn-sm" data-sub-export="vtt">WebVTT (.vtt)</button>
+              <button class="btn btn-ghost btn-sm" data-sub-export="txt">Plain Text (.txt)</button>
+              <button class="btn btn-ghost btn-sm" data-sub-export="hosub">Save Project (.hosub.json)</button>
+            </div>
+          </div>
+
+          <div class="export-card">
+            <h3>Audio &amp; Flashcard Deck</h3>
+            <p>Extract full lesson voice, auto-cut taught-language clips, or export Excel cards.</p>
+            <div class="export-btns">
+              <select id="expFullAudioFmt" class="select-compact">
+                <option value="mp3">MP3</option>
+                <option value="wav">WAV</option>
+                <option value="m4a">M4A</option>
+                <option value="flac">FLAC</option>
+              </select>
+              <button class="btn btn-subtle btn-sm" id="btnExportFullAudio">Extract Full Audio</button>
+              <button class="btn btn-primary btn-sm" id="btnJumpAudioZip">Target Clips (.ZIP)</button>
+              <button class="btn btn-subtle btn-sm" id="btnExportXlsxModal">Flashcards (.xlsx)</button>
+            </div>
+          </div>
+
+          <div class="export-card">
+            <h3>Subtitled Video (FFmpeg)</h3>
+            <p>Dual-track Soft-Sub (toggle reading ON/OFF in player) or burned-in styled Hard-Sub MP4.</p>
+            <div class="export-btns">
+              <button class="btn btn-subtle btn-sm" data-vid-export="softsub-mkv">Soft-Sub .MKV (2 Tracks)</button>
+              <button class="btn btn-ghost btn-sm" data-vid-export="softsub-mp4">Soft-Sub .MP4</button>
+              <button class="btn btn-ghost btn-sm" data-vid-export="hardsub-mp4">Burn Hard-Sub .MP4</button>
+            </div>
+            <div id="videoExportResult" class="muted mt-8"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: VOCABULARY AI ROUND-TRIP -->
+  <div class="modal-backdrop hidden" id="modalVocabAi">
+    <div class="modal modal-wide">
+      <div class="modal-head">
+        <h2>AI Translate Extracted Vocabulary (Context-Aware)</h2>
+        <button class="btn btn-icon modal-close" data-close="modalVocabAi">✕</button>
+      </div>
+      <div class="modal-body two-col-cards compact">
+        <div>
+          <div class="btn-row mb-8">
+            <select id="vocabAiLang" class="select-compact">
+              <option value="fa">Persian (فارسی)</option>
+              <option value="en">English</option>
+              <option value="de">German</option>
+              <option value="fr">French</option>
+              <option value="es">Spanish</option>
+              <option value="ro">Romanian</option>
+              <option value="tr">Turkish</option>
+            </select>
+            <button class="btn btn-primary btn-sm" id="btnCopyVocabPrompt">1. Copy Wordlist Prompt</button>
+          </div>
+          <textarea id="vocabAiPromptBox" class="code-box" rows="12" readonly></textarea>
+        </div>
+        <div>
+          <div class="btn-row mb-8">
+            <label class="check-inline">
+              <input id="chkSaveVocabAiToDict" type="checkbox">
+              <span>Also save into Custom Dictionary</span>
+            </label>
+            <button class="btn btn-primary btn-sm" id="btnApplyVocabAi">2. Apply Translations</button>
+          </div>
+          <textarea id="vocabAiPasteBox" class="code-box" rows="12" dir="auto" placeholder="[001] 早上好 | صبح بخیر | phrase | سلام صبحگاهی&#10;[002] 老师 | استاد، معلم | noun | خطاب محترمانه"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: OFFLINE AI ENGINE SETTINGS -->
+  <div class="modal-backdrop hidden" id="modalEngine">
+    <div class="modal">
+      <div class="modal-head">
+        <h2>Offline AI Engine Settings</h2>
+        <button class="btn btn-icon modal-close" data-close="modalEngine">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="card-sub">HoSub automatically detects your existing <code>tools/ffmpeg.exe</code>, <code>tools/whisper-cli.exe</code>, and <code>models/ggml-large-v3-turbo.bin</code> (including <code>E:\hosub</code>). Leave paths blank for auto-detection or paste custom paths below.</p>
+        <div id="engineStatusCards" class="status-cards"></div>
+        <form id="engineForm" class="stack-form mt-10">
+          <label class="field">
+            <span>FFmpeg Executable Path</span>
+            <input id="engFfmpeg" type="text" placeholder="Auto-detect (e.g. E:\hosub\tools\ffmpeg.exe)">
+          </label>
+          <label class="field">
+            <span>Whisper.cpp CLI Path</span>
+            <input id="engWhisper" type="text" placeholder="Auto-detect (e.g. E:\hosub\tools\whisper-cli.exe)">
+          </label>
+          <label class="field">
+            <span>Whisper GGML Model (.bin)</span>
+            <input id="engModel" type="text" placeholder="Auto-detect (e.g. E:\hosub\models\ggml-large-v3-turbo.bin)">
+          </label>
+          <div class="form-row-grid two">
+            <label class="field">
+              <span>Decoding Profile</span>
+              <select id="engStrategy">
+                <option value="fast">Fast (Greedy — quickest)</option>
+                <option value="balanced" selected>Balanced (Recommended)</option>
+                <option value="accurate">Accurate (Beam 5 — highest precision)</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>CPU Threads (0 = All Cores)</span>
+              <input id="engThreads" type="number" value="0" min="0" max="128">
+            </label>
+          </div>
+          <label class="check-inline">
+            <input id="engGpu" type="checkbox" checked>
+            <span>Use GPU acceleration when supported by your whisper-cli build</span>
+          </label>
+          <div class="btn-row mt-10">
+            <button type="submit" class="btn btn-primary">Save &amp; Re-Scan</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+
+  <script src="app.js?v=2.1.4"></script>
+</body>
+</html>
